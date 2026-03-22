@@ -17,8 +17,21 @@ Alternatives considered and rejected:
 | Option | Reason rejected |
 |--------|----------------|
 | Docker + Elixir | Container startup overhead per command; adds a runtime dep for users |
-| Node/npm (like `ccpi`) | Ironic to use npm for a tool that exists partly because npm-based installs are fragile |
+| Node/npm | Viable path (see below), but carries irony and a Node.js runtime dep |
 | Shell script | Poor error handling, hard to test, not easily cross-platform |
+
+### Note on Node/npm
+
+npm-first with Brew later is a legitimate distribution path:
+
+1. `npm install -g claude-skills` — works today, requires Node.js
+2. Homebrew formula later — a `brew tap` formula can either wrap the npm install or bundle a standalone binary via `pkg`/`nexe`
+
+The practical concern isn't distribution — it's the **runtime dep**: users need Node.js installed. Go produces a static binary with zero runtime requirements.
+
+The irony worth noting: `ccpi` (the tool this replaces) is npm-based. The README calls it out as a rejected approach. The problem with `ccpi` was *behavior* (overwrites edits, no upstream tracking) not npm itself — so using npm here wouldn't be self-contradictory, just mildly ironic.
+
+**Decision: stay with Go** for the zero-runtime-dep binary, but npm is not a blocker if Go proves difficult.
 
 ## Commands to Implement
 
