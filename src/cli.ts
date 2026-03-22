@@ -1,3 +1,9 @@
+import { join } from "node:path";
+import { readSkillfile } from "./config";
+import { install } from "./install";
+
+const CLAUDE_DIR = join(process.env.HOME ?? "~", ".claude");
+
 const HELP = `\
 Usage: skillstow <command> [args]
 
@@ -9,16 +15,19 @@ Commands:
   fork <name> <url>         Change a skill's origin and push
 `;
 
-export function run(args: string[]): { output: string; exitCode: number } {
-  const [command, ...rest] = args;
+export async function run(args: string[]): Promise<{ output: string; exitCode: number }> {
+  const [command] = args;
 
   if (!command || command === "--help") {
     return { output: HELP, exitCode: 0 };
   }
 
   switch (command) {
-    case "install":
-      return { output: "install: not yet implemented", exitCode: 0 };
+    case "install": {
+      const skills = await readSkillfile(join(CLAUDE_DIR, "Skillfile"));
+      await install(skills, CLAUDE_DIR);
+      return { output: `Installed ${skills.length} skill(s).`, exitCode: 0 };
+    }
     case "freeze":
       return { output: "freeze: not yet implemented", exitCode: 0 };
     case "update":
@@ -33,7 +42,7 @@ export function run(args: string[]): { output: string; exitCode: number } {
 }
 
 if (import.meta.main) {
-  const { output, exitCode } = run(process.argv.slice(2));
+  const { output, exitCode } = await run(process.argv.slice(2));
   console.log(output);
   process.exit(exitCode);
 }
