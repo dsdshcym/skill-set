@@ -3,11 +3,13 @@
 A git-native manager for Claude Code skills — declare your skills in a `Skillfile`,
 install, customize, and track upstream changes without losing your edits.
 
-Inspired by [GNU Stow](https://www.gnu.org/software/stow/) — which manages dotfiles as
-symlinked packages — **Skillstow** applies the same idea to Claude skills: each skill is
-a live git clone you can fork, edit, and merge upstream changes into. Declare them in a
-`Skillfile` like a `Brewfile` for Homebrew, a `Gemfile` for Bundler, or a `vim-plug`
-block for Vim.
+**Skillstow** applies familiar ideas from the tools you already use:
+
+- [GNU Stow](https://www.gnu.org/software/stow/) — manages dotfiles as symlinked packages
+- [straight.el](https://github.com/radian-software/straight.el) — each Emacs package is a live git clone you can fork, edit, and merge upstream changes into
+- [Homebrew Bundle](https://github.com/Homebrew/homebrew-bundle) — declare dependencies in a `Brewfile`, reproduce anywhere
+- [Bundler](https://bundler.io/) — `Gemfile` + `Gemfile.lock` for reproducible installs
+- [vim-plug](https://github.com/junegunn/vim-plug) — declare plugins in your vimrc, manage with git
 
 ## Problem
 
