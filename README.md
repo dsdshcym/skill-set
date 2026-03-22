@@ -44,6 +44,12 @@ name    = "git-commit-messages"
 origin  = "https://github.com/dsdshcym/dotfiles"
 path    = ".claude/skills/git-commit-messages"
 branch  = "master"
+
+[[skill]]
+name    = "tdd"
+origin  = "https://github.com/anthropics/claude-skills"
+path    = "tdd"
+pin     = "def5678"
 ```
 
 ### Commands
@@ -61,16 +67,19 @@ branch  = "master"
 ```
 ~/.claude/
 ├── skills/                  # symlinks managed by skillstow
-│   ├── extract-notes -> ~/.claude/skill-repos/dotfiles/.claude/skills/extract-notes
-│   └── git-commit-messages -> ...
+│   ├── extract-notes -> ~/.claude/skill-repos/extract-notes/.claude/skills/extract-notes
+│   ├── git-commit-messages -> ~/.claude/skill-repos/git-commit-messages/.claude/skills/git-commit-messages
+│   └── tdd -> ~/.claude/skill-repos/tdd/tdd
 ├── skill-repos/             # git clones (source of truth)
-│   └── dotfiles/            # cloned from dsdshcym/dotfiles
+│   ├── extract-notes/       # cloned from dsdshcym/dotfiles
+│   ├── git-commit-messages/ # cloned from dsdshcym/dotfiles
+│   └── tdd/                 # cloned from anthropics/claude-skills
 ├── Skillfile                # your declarations
 └── Skillfile.lock           # pinned commits, auto-generated
 ```
 
-Skills that live inside a dotfiles repo get the whole repo cloned once; multiple skills
-from the same repo share one clone.
+Each skill gets its own independent clone, named after the skill. 
+This means skills that share an upstream repo can be forked and customized independently.
 
 ### Non-goals
 

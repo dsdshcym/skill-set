@@ -1,9 +1,3 @@
-import { basename } from "node:path";
-
-export function repoName(origin: string): string {
-  return basename(origin).replace(/\.git$/, "");
-}
-
 export function serializeSkillfile(skills: Skill[]): string {
   return (
     skills
@@ -28,6 +22,10 @@ export interface Skill {
   path: string;
   branch?: string;
   pin?: string;
+}
+
+export function cloneDirName(skill: Skill): string {
+  return skill.name;
 }
 
 export function parseSkillfile(content: string): Skill[] {

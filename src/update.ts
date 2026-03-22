@@ -1,10 +1,10 @@
 import { join } from "node:path";
 import { $ } from "bun";
-import { repoName, type Skill } from "./config";
+import { cloneDirName, type Skill } from "./config";
 import { readLockfile, serializeLockfile } from "./lock";
 
 export async function update(skill: Skill, claudeDir: string): Promise<void> {
-  const cloneDir = join(claudeDir, "skill-repos", repoName(skill.origin));
+  const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
   await $`git -C ${cloneDir} fetch origin`.quiet();
   await $`git -C ${cloneDir} merge --ff-only FETCH_HEAD`.quiet();
 

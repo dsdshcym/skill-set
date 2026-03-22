@@ -34,7 +34,7 @@ describe("install", () => {
   it("clones repo and creates symlink", async () => {
     await install([{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }], claudeDir);
 
-    const cloneDir = join(claudeDir, "skill-repos", "origin");
+    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
     expect(await Bun.file(join(cloneDir, ".claude/skills/my-skill/SKILL.md")).exists()).toBe(true);
 
     const linkTarget = await readlink(join(claudeDir, "skills", "my-skill"));
@@ -52,7 +52,7 @@ describe("install", () => {
     // Install again — should fetch and the new file should appear
     await install([{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }], claudeDir);
 
-    const cloneDir = join(claudeDir, "skill-repos", "origin");
+    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
     expect(await Bun.file(join(cloneDir, ".claude/skills/my-skill/extra.md")).exists()).toBe(true);
   });
 
@@ -67,7 +67,7 @@ describe("install", () => {
 
     await install([{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", pin }], claudeDir);
 
-    const cloneDir = join(claudeDir, "skill-repos", "origin");
+    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
     const head = (await $`git -C ${cloneDir} rev-parse HEAD`.quiet()).stdout.toString().trim();
     expect(head).toBe(pin);
   });

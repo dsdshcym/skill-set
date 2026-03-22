@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { $ } from "bun";
-import { readSkillfile, serializeSkillfile, repoName } from "./config";
+import { readSkillfile, serializeSkillfile, cloneDirName } from "./config";
 
 export async function fork(name: string, newOrigin: string, claudeDir: string): Promise<void> {
   const skillfilePath = join(claudeDir, "Skillfile");
@@ -9,7 +9,7 @@ export async function fork(name: string, newOrigin: string, claudeDir: string): 
   const skill = skills.find((s) => s.name === name);
   if (!skill) throw new Error(`Skill "${name}" not found in Skillfile`);
 
-  const cloneDir = join(claudeDir, "skill-repos", repoName(skill.origin));
+  const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
   await $`git -C ${cloneDir} remote set-url origin ${newOrigin}`.quiet();
 
   const branch = (await $`git -C ${cloneDir} rev-parse --abbrev-ref HEAD`.quiet()).stdout.toString().trim();

@@ -18,7 +18,7 @@ describe("update", () => {
 
     await update({ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }, claudeDir);
 
-    const cloneDir = join(claudeDir, "skill-repos", "origin");
+    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
     expect(await Bun.file(join(cloneDir, ".claude/skills/my-skill/new-file.md")).exists()).toBe(true);
   });
 

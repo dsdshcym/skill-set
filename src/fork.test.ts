@@ -32,7 +32,7 @@ describe("fork", () => {
     expect(skills[0].origin).toBe(forkRepo);
 
     // Git remote updated
-    const cloneDir = join(claudeDir, "skill-repos", "origin");
+    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
     const remote = (await $`git -C ${cloneDir} remote get-url origin`.quiet()).stdout.toString().trim();
     expect(remote).toBe(forkRepo);
   });

@@ -1,7 +1,7 @@
 import { mkdir, symlink, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "bun";
-import { repoName, type Skill } from "./config";
+import { cloneDirName, type Skill } from "./config";
 
 async function dirExists(path: string): Promise<boolean> {
   return Bun.file(join(path, ".git", "HEAD")).exists();
@@ -14,7 +14,7 @@ export async function install(skills: Skill[], claudeDir: string): Promise<void>
   await mkdir(skillsDir, { recursive: true });
 
   for (const skill of skills) {
-    const cloneDir = join(reposDir, repoName(skill.origin));
+    const cloneDir = join(reposDir, cloneDirName(skill));
 
     if (await dirExists(cloneDir)) {
       await $`git -C ${cloneDir} fetch origin`.quiet();
