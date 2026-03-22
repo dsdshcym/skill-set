@@ -62,8 +62,9 @@ describe("run", () => {
     expect(output).toContain("Usage:");
   });
 
-  it("recognizes fork", async () => {
-    const { exitCode } = await run(["fork", "nonexistent", "https://example.com/x"], claudeDir);
-    expect(exitCode).toBe(0);
+  it("exits 1 when fork skill not found", async () => {
+    const { output, exitCode } = await run(["fork", "nonexistent", "https://example.com/x"], claudeDir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("nonexistent");
   });
 });

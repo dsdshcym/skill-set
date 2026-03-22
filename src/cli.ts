@@ -4,6 +4,7 @@ import { install } from "./install";
 import { freeze } from "./freeze";
 import { update } from "./update";
 import { add } from "./add";
+import { fork } from "./fork";
 
 const DEFAULT_CLAUDE_DIR = join(process.env.HOME ?? "~", ".claude");
 
@@ -53,8 +54,16 @@ export async function run(args: string[], claudeDir = DEFAULT_CLAUDE_DIR): Promi
       await add({ name, origin: url, path: skillPath }, claudeDir);
       return { output: `Added and installed ${name}.`, exitCode: 0 };
     }
-    case "fork":
-      return { output: "fork: not yet implemented", exitCode: 0 };
+    case "fork": {
+      const [, name, newOrigin] = args;
+      if (!name || !newOrigin) return { output: "Usage: skillstow fork <name> <url>", exitCode: 1 };
+      try {
+        await fork(name, newOrigin, claudeDir);
+        return { output: `Forked ${name} to ${newOrigin}.`, exitCode: 0 };
+      } catch (e: any) {
+        return { output: e.message, exitCode: 1 };
+      }
+    }
     default:
       return { output: `Unknown command: ${command}\n\n${HELP}`, exitCode: 1 };
   }
