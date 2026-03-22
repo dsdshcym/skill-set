@@ -1,0 +1,8 @@
+{
+  "name": "skillstow",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "bun test",
+    "build": "bun build --compile src/cli.ts --outfile skillstow"
+  }
+}
