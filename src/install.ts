@@ -1,11 +1,7 @@
 import { mkdir, symlink, rm } from "node:fs/promises";
-import { join, basename } from "node:path";
+import { join } from "node:path";
 import { $ } from "bun";
-import type { Skill } from "./config";
-
-function repoName(origin: string): string {
-  return basename(origin).replace(/\.git$/, "");
-}
+import { repoName, type Skill } from "./config";
 
 async function dirExists(path: string): Promise<boolean> {
   return Bun.file(join(path, ".git", "HEAD")).exists();

@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { readSkillfile } from "./config";
 import { install } from "./install";
+import { freeze } from "./freeze";
 
 const CLAUDE_DIR = join(process.env.HOME ?? "~", ".claude");
 
@@ -28,8 +29,11 @@ export async function run(args: string[]): Promise<{ output: string; exitCode: n
       await install(skills, CLAUDE_DIR);
       return { output: `Installed ${skills.length} skill(s).`, exitCode: 0 };
     }
-    case "freeze":
-      return { output: "freeze: not yet implemented", exitCode: 0 };
+    case "freeze": {
+      const skills = await readSkillfile(join(CLAUDE_DIR, "Skillfile"));
+      await freeze(skills, CLAUDE_DIR);
+      return { output: `Pinned ${skills.length} skill(s) to Skillfile.lock.`, exitCode: 0 };
+    }
     case "update":
       return { output: "update: not yet implemented", exitCode: 0 };
     case "add":
