@@ -1,11 +1,13 @@
-# Skillfile
+# Skillstow
 
-A git-native manager for Claude Code skills — declare your skills in a file, install,
-customize, and track upstream changes without losing your edits.
+A git-native manager for Claude Code skills — declare your skills in a `Skillfile`,
+install, customize, and track upstream changes without losing your edits.
 
-Like a `Brewfile` for Homebrew, a `Gemfile` for Bundler, a `vim-plug` block for Vim, or
-a `package-lock.json` for npm — **Skillfile** is the declarative source of truth for
-your Claude skills, with git-native version tracking built in.
+Inspired by [GNU Stow](https://www.gnu.org/software/stow/) — which manages dotfiles as
+symlinked packages — **Skillstow** applies the same idea to Claude skills: each skill is
+a live git clone you can fork, edit, and merge upstream changes into. Declare them in a
+`Skillfile` like a `Brewfile` for Homebrew, a `Gemfile` for Bundler, or a `vim-plug`
+block for Vim.
 
 ## Problem
 
