@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { $ } from "bun";
 import { setupInstalledRepo } from "./test-helpers";
 import { fork } from "./fork";
-import { readSkillfile } from "./config";
+import { readSkillfile, cloneDirName } from "./config";
 
 describe("fork", () => {
   let tmpDir: string;
@@ -32,7 +32,8 @@ describe("fork", () => {
     expect(skills[0].origin).toBe(forkRepo);
 
     // Git remote updated
-    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
+    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" };
+    const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
     const remote = (await $`git -C ${cloneDir} remote get-url origin`.quiet()).stdout.toString().trim();
     expect(remote).toBe(forkRepo);
   });

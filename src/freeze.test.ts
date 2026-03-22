@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { $ } from "bun";
 import { setupInstalledRepo } from "./test-helpers";
 import { freeze } from "./freeze";
+import { cloneDirName } from "./config";
 import { readLockfile } from "./lock";
 
 describe("freeze", () => {
@@ -14,7 +15,8 @@ describe("freeze", () => {
   it("writes current HEAD of each skill to Skillfile.lock", async () => {
     const { tmpDir: td, originRepo, claudeDir } = await setupInstalledRepo();
     tmpDir = td;
-    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
+    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" };
+    const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
     const expectedPin = (await $`git -C ${cloneDir} rev-parse HEAD`.quiet()).stdout.toString().trim();
 
     await freeze([{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }], claudeDir);

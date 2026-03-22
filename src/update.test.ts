@@ -3,6 +3,7 @@ import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { setupInstalledRepo, addCommit } from "./test-helpers";
 import { update } from "./update";
+import { cloneDirName } from "./config";
 import { readLockfile } from "./lock";
 
 describe("update", () => {
@@ -18,7 +19,8 @@ describe("update", () => {
 
     await update({ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }, claudeDir);
 
-    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
+    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" };
+    const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
     expect(await Bun.file(join(cloneDir, ".claude/skills/my-skill/new-file.md")).exists()).toBe(true);
   });
 

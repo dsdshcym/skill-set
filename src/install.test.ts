@@ -4,6 +4,7 @@ import { mkdtemp, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { install } from "./install";
+import { cloneDirName } from "./config";
 import { $ } from "bun";
 
 describe("install", () => {
@@ -32,9 +33,10 @@ describe("install", () => {
   });
 
   it("clones repo and creates symlink", async () => {
-    await install([{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }], claudeDir);
+    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" };
+    await install([skill], claudeDir);
 
-    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
+    const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
     expect(await Bun.file(join(cloneDir, ".claude/skills/my-skill/SKILL.md")).exists()).toBe(true);
 
     const linkTarget = await readlink(join(claudeDir, "skills", "my-skill"));
@@ -42,7 +44,8 @@ describe("install", () => {
   });
 
   it("fetches instead of cloning when repo already cloned", async () => {
-    await install([{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }], claudeDir);
+    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" };
+    await install([skill], claudeDir);
 
     // Add a new commit to origin
     await Bun.write(join(originRepo, ".claude/skills/my-skill/extra.md"), "extra");
@@ -50,9 +53,9 @@ describe("install", () => {
     await $`git -C ${originRepo} -c commit.gpgsign=false commit -m "add extra"`.quiet();
 
     // Install again — should fetch and the new file should appear
-    await install([{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }], claudeDir);
+    await install([skill], claudeDir);
 
-    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
+    const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
     expect(await Bun.file(join(cloneDir, ".claude/skills/my-skill/extra.md")).exists()).toBe(true);
   });
 
@@ -65,9 +68,10 @@ describe("install", () => {
     await $`git -C ${originRepo} add .`.quiet();
     await $`git -C ${originRepo} -c commit.gpgsign=false commit -m "after pin"`.quiet();
 
-    await install([{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", pin }], claudeDir);
+    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", pin };
+    await install([skill], claudeDir);
 
-    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
+    const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
     const head = (await $`git -C ${cloneDir} rev-parse HEAD`.quiet()).stdout.toString().trim();
     expect(head).toBe(pin);
   });
