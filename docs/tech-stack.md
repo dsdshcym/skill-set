@@ -1,44 +1,50 @@
-# Implementation Plan
+# Tech Stack
 
-## Tech Stack Decision
+## Runtime: Bun
 
-**Language: Node.js / npm**
+- **Built-in TypeScript** — no build config, no `tsc`/`esbuild`
+- **Built-in TOML** — `Bun.TOML.parse()`, no extra dependency
+- **`bun build --compile`** — single self-contained binary, zero runtime dep for end users
+- **Fast startup** — CLI tools feel snappier
 
-JS/npm is the right fit:
+## Distribution: compiled binary
 
-- **Same runtime as Claude Code itself** — Claude Code is a Node.js app bundled as a binary; this tool lives in the same ecosystem
-- **npm install -g** — familiar one-liner for Claude Code users who already have Node
-- **Brew later** — a `brew tap` formula can wrap the npm install or bundle a standalone binary via `pkg`/`@yao-pkg/pkg`
-- **Git operations** — `execa` or `node:child_process` wrapping `git` CLI; same approach as Go, no difference
-- **TOML parsing** — `@iarna/toml` or `smol-toml`; mature options available
-- **No Docker required** — native Node.js, no containers needed
+- `brew install skillstow` via a tap (primary)
+- Direct binary download as fallback
+- No Node/Bun required on the user's machine
 
 Alternatives considered and rejected:
 
 | Option | Reason rejected |
 |--------|----------------|
-| Docker + Elixir | Container startup overhead per command; adds a heavy runtime dep for users |
-| Go | Good zero-dep binary story, but Node is already required for Claude Code — no extra dep in practice |
+| Node.js + npm | Build step needed for TS; TOML needs a dep; npm global installs are clunky |
+| Go | Good binary story, but Bun matches it while staying in JS/TS |
 | Shell script | Poor error handling, hard to test, not easily cross-platform |
-
-## Commands to Implement
-
-See README.md for the full command spec: `install`, `update`, `freeze`, `add`, `fork`.
+| Docker + Elixir | Container startup overhead; heavy runtime dep |
 
 ## File Layout
 
 ```
 src/
-  cli.ts (or .js)    # CLI entry point (commander or minimist)
-  config.ts          # skills.toml read/write
-  lock.ts            # skills.lock read/write
-  git.ts             # git exec wrappers (clone, fetch, worktree, symlink)
-  skill.ts           # install/update/freeze/add/fork logic
+  cli.ts        # CLI entry point (commander)
+  config.ts     # Skillfile read/write
+  lock.ts       # Skillfile.lock read/write
+  git.ts        # git exec wrappers (clone, fetch, merge, symlink)
+  skill.ts      # install/update/freeze/add/fork logic
 package.json
 ```
 
+## Commands
+
+| Command | Effect |
+|---------|--------|
+| `skillstow install` | Clone/fetch origins, checkout pinned commits, symlink into `~/.claude/skills/` |
+| `skillstow update <name>` | `git fetch origin`, merge upstream, update `Skillfile.lock` |
+| `skillstow freeze` | Write current HEAD of every skill into `Skillfile.lock` |
+| `skillstow add <url> [path]` | Append to `Skillfile`, run install |
+| `skillstow fork <name> <your-url>` | Change origin, push current state, continue tracking |
+
 ## Open Questions
 
-- TypeScript or plain JS? (TS gives better maintainability; plain JS avoids a build step)
-- Use `commander` for CLI or keep it simple with `minimist`?
-- Config location: `~/.claude/skills.toml` hardcoded or `--config` flag?
+- Use `commander` for CLI or keep it minimal with `parseArgs` from `node:util`?
+- `Skillfile` location: `~/.claude/Skillfile` hardcoded or `--config` flag?
