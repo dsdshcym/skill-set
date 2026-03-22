@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { readSkillfile } from "./config";
 import { install } from "./install";
 import { freeze } from "./freeze";
+import { update } from "./update";
 
 const CLAUDE_DIR = join(process.env.HOME ?? "~", ".claude");
 
@@ -34,8 +35,15 @@ export async function run(args: string[]): Promise<{ output: string; exitCode: n
       await freeze(skills, CLAUDE_DIR);
       return { output: `Pinned ${skills.length} skill(s) to Skillfile.lock.`, exitCode: 0 };
     }
-    case "update":
-      return { output: "update: not yet implemented", exitCode: 0 };
+    case "update": {
+      const [, name] = args;
+      if (!name) return { output: "Usage: skillstow update <name>", exitCode: 1 };
+      const skills = await readSkillfile(join(CLAUDE_DIR, "Skillfile"));
+      const skill = skills.find((s) => s.name === name);
+      if (!skill) return { output: `Skill "${name}" not found in Skillfile`, exitCode: 1 };
+      await update(skill, CLAUDE_DIR);
+      return { output: `Updated ${name}.`, exitCode: 0 };
+    }
     case "add":
       return { output: "add: not yet implemented", exitCode: 0 };
     case "fork":

@@ -35,9 +35,10 @@ describe("run", () => {
     expect(exitCode).toBe(0);
   });
 
-  it("recognizes update <name>", async () => {
-    const { exitCode } = await run(["update", "my-skill"]);
-    expect(exitCode).toBe(0);
+  it("exits 1 when update skill not found", async () => {
+    const { output, exitCode } = await run(["update", "nonexistent"]);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("nonexistent");
   });
 
   it("recognizes add <url>", async () => {
