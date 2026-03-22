@@ -1,7 +1,11 @@
-# Claude Skills
+# Skillfile
 
-A git-native manager for Claude Code skills — install, customize, and track upstream
-changes without losing your edits.
+A git-native manager for Claude Code skills — declare your skills in a file, install,
+customize, and track upstream changes without losing your edits.
+
+Like a `Brewfile` for Homebrew, a `Gemfile` for Bundler, a `vim-plug` block for Vim, or
+a `package-lock.json` for npm — **Skillfile** is the declarative source of truth for
+your Claude skills, with git-native version tracking built in.
 
 ## Problem
 
