@@ -33,7 +33,7 @@ describe("install", () => {
   });
 
   it("clones repo and creates symlink", async () => {
-    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" };
+    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", skillset: "my-skill" };
     await install([skill], claudeDir);
 
     const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
@@ -44,7 +44,7 @@ describe("install", () => {
   });
 
   it("fetches instead of cloning when repo already cloned", async () => {
-    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" };
+    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", skillset: "my-skill" };
     await install([skill], claudeDir);
 
     // Add a new commit to origin
@@ -68,11 +68,42 @@ describe("install", () => {
     await $`git -C ${originRepo} add .`.quiet();
     await $`git -C ${originRepo} -c commit.gpgsign=false commit -m "after pin"`.quiet();
 
-    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", pin };
+    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", pin, skillset: "my-skill" };
     await install([skill], claudeDir);
 
     const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
     const head = (await $`git -C ${cloneDir} rev-parse HEAD`.quiet()).stdout.toString().trim();
     expect(head).toBe(pin);
+  });
+
+  it("shares one clone for skills in the same skillset", async () => {
+    // Create a repo with two skills
+    await mkdir(join(originRepo, ".claude/skills/skill-b"), { recursive: true });
+    await Bun.write(join(originRepo, ".claude/skills/skill-b/SKILL.md"), "# Skill B");
+    await $`git -C ${originRepo} add .`.quiet();
+    await $`git -C ${originRepo} -c commit.gpgsign=false commit -m "add skill-b"`.quiet();
+
+    const skills = [
+      { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", skillset: "my-set" },
+      { name: "skill-b", origin: originRepo, path: ".claude/skills/skill-b", skillset: "my-set" },
+    ];
+    await install(skills, claudeDir);
+
+    // Both symlinks should point into the same clone dir
+    const linkA = await readlink(join(claudeDir, "skills", "my-skill"));
+    const linkB = await readlink(join(claudeDir, "skills", "skill-b"));
+    const sharedClone = join(claudeDir, "skill-repos", "my-set");
+
+    expect(linkA).toBe(join(sharedClone, ".claude/skills/my-skill"));
+    expect(linkB).toBe(join(sharedClone, ".claude/skills/skill-b"));
+
+    // Verify the shared clone exists and has both skills
+    expect(await Bun.file(join(sharedClone, ".claude/skills/my-skill/SKILL.md")).exists()).toBe(true);
+    expect(await Bun.file(join(sharedClone, ".claude/skills/skill-b/SKILL.md")).exists()).toBe(true);
+
+    // Verify there's only one clone dir (not two)
+    const { stdout } = await $`ls ${join(claudeDir, "skill-repos")}`.quiet();
+    const dirs = stdout.toString().trim().split("\n");
+    expect(dirs).toEqual(["my-set"]);
   });
 });
