@@ -22,7 +22,6 @@ describe("run", () => {
     expect(output).toContain("install");
     expect(output).toContain("update");
     expect(output).toContain("freeze");
-    expect(output).toContain("add");
     expect(output).toContain("fork");
   });
 
@@ -54,12 +53,6 @@ describe("run", () => {
     const { output, exitCode } = await run(["update", "nonexistent"], claudeDir);
     expect(exitCode).toBe(1);
     expect(output).toContain("nonexistent");
-  });
-
-  it("exits 1 when add has no url", async () => {
-    const { output, exitCode } = await run(["add"], claudeDir);
-    expect(exitCode).toBe(1);
-    expect(output).toContain("Usage:");
   });
 
   it("exits 1 when fork skill not found", async () => {

@@ -21,10 +21,10 @@ bun build --compile src/cli.ts --outfile skill-set
 
 ## Architecture
 
-`src/cli.ts` dispatches subcommands to individual modules. Each command module (`install`, `freeze`, `update`, `add`, `fork`) is self-contained. Shared I/O lives in `config.ts` (Skillfile) and `lock.ts` (Skillfile.lock).
+`src/cli.ts` dispatches subcommands to individual modules. Each command module (`install`, `freeze`, `update`, `fork`) is self-contained. Shared I/O lives in `config.ts` (Skillfile) and `lock.ts` (Skillfile.lock).
 
 ```
-cli.ts → install.ts, freeze.ts, update.ts, add.ts, fork.ts
+cli.ts → install.ts, freeze.ts, update.ts, fork.ts
                   ↓
             config.ts (Skillfile TOML)
             lock.ts   (Skillfile.lock TOML)
