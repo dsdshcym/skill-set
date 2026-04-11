@@ -6,20 +6,20 @@ Some skills only make sense together — they form a "skill set." Examples: the 
 
 ## Data Model
 
-`Skillset` replaces `Skill` as the core type. A single skill is a special case of a skillset.
+`Skill` remains the core internal type, with one new field (`skillset`). `Skillset` is only a Skillfile authoring concept — not an internal type.
 
 ```typescript
-interface Skillset {
-  name: string;       // identifier, also clone dir name
+interface Skill {
+  name: string;       // skill identifier
   origin: string;     // git repo URL
-  root_path: string;  // base path prefix (default: "")
-  skills: string[];   // skill names within the repo
+  path: string;       // fully resolved path within repo
+  skillset?: string;  // grouping key for shared clones (also clone dir name)
   branch?: string;
   pin?: string;
 }
 ```
 
-Each skill resolves to `{root_path}/{skill_name}` within the repo.
+The data flow is: `Skillfile → Skill[] → Skillfile.lock → ~/.claude/skills`. Parsing the Skillfile expands `[[skillset]]` entries into N `Skill` objects with `path` pre-resolved and `skillset` set. From that point on, everything works with `Skill[]`. Install groups by `skillset` to share clones.
 
 ## Skillfile Format
 
@@ -44,7 +44,7 @@ skills    = ["extract-notes", "extract-notes-review"]
 name   = "tdd"
 origin = "https://github.com/anthropics/claude-skills"
 path   = "tdd"
-# normalizes to: Skillset { name: "tdd", skills: ["tdd"], root_path: "", ... }
+# normalizes to: Skill { name: "tdd", path: "tdd", skillset: "tdd", ... }
 ```
 
 `root_path` defaults to `""`. With `root_path = ""`, skill `"brainstorming"` resolves to path `"brainstorming"` (top-level directory).
@@ -118,17 +118,17 @@ All commands operate on skillsets as the unit. `[[skill]]` is treated as backwar
 
 ### `install`
 
-1. Read Skillfile, normalize `[[skill]]` entries to skillsets
-2. One clone/fetch per skillset into `skill-repos/{skillset.name}/`
+1. Read Skillfile, expand `[[skillset]]` entries into `Skill[]`
+2. Group `Skill[]` by `skillset` — one clone/fetch per group into `skill-repos/{skillset}/`
 3. If `pin` exists, checkout that commit
-4. For each skill in `skills[]`, create symlink: `skills/{skill}` → `skill-repos/{name}/{root_path}/{skill}`
-5. Generate Skillfile.lock with flat `[[skill]]` entries + `skillset` field
+4. For each skill, create symlink: `skills/{name}` → `skill-repos/{skillset}/{path}`
+5. Generate Skillfile.lock with flat `[[skill]]` entries (including `skillset` field)
 6. Can also install from Skillfile.lock directly (groups by `skillset` field)
 
 ### `freeze`
 
-1. Read Skillfile, resolve skillsets
-2. One `rev-parse HEAD` per skillset (shared pin)
+1. Read Skillfile, expand into `Skill[]`
+2. Group by `skillset` — one `rev-parse HEAD` per group (shared pin)
 3. Write Skillfile.lock in flat format
 
 ### `update <skillset-name>`
@@ -149,18 +149,18 @@ All commands operate on skillsets as the unit. `[[skill]]` is treated as backwar
 
 Users edit Skillfile directly, then run `skill-set install`. Same as Bundler/Go modules workflow.
 
-## Parsing & Normalization
+## Parsing
 
-### Skillfile → Skillset[]
+### Skillfile → Skill[]
 
-- `[[skillset]]` entries map directly to `Skillset`
-- `[[skill]]` entries normalize: `Skill { name, origin, path }` → `Skillset { name, origin, root_path: "", skills: [name] }` where `root_path` is derived such that `root_path + "/" + name == path` (or `root_path = ""` if `path == name`)
+- `[[skillset]]` entries expand: for each skill name in `skills[]`, produce a `Skill` with `path = root_path + "/" + skill_name` (or just `skill_name` when `root_path` is `""`), and `skillset` set to the skillset's `name`
+- `[[skill]]` entries pass through as-is, with `skillset` set to the skill's `name`
 
-### Skillfile.lock → Skillset[]
+### Skillfile.lock → Skill[]
 
-- Read flat `[[skill]]` entries
-- Group by `skillset` field to reconstruct `Skillset` objects
-- Skills without `skillset` field → standalone single-skill skillset
+- Read flat `[[skill]]` entries directly into `Skill[]`
+- `skillset` field is already present on each entry
+- Install groups by `skillset` to produce shared clones
 
 ## Migration
 
