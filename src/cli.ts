@@ -12,9 +12,9 @@ Usage: skill-set <command> [args]
 
 Commands:
   install                   Clone/fetch skills and symlink into ~/.claude/skills/
-  update <name>             Fetch and merge upstream changes for a skill
+  update <name>             Fetch and merge upstream changes for a skillset
   freeze                    Pin all skills to their current HEAD in Skillfile.lock
-  fork <name> <url>         Change a skill's origin and push
+  fork <name> <url>         Change a skillset's origin and push
 `;
 
 export async function run(args: string[], claudeDir = DEFAULT_CLAUDE_DIR): Promise<{ output: string; exitCode: number }> {
