@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { readSkillfile } from "./config";
+import { readSkillfile, flattenSkillsets } from "./config";
 import { install } from "./install";
 import { freeze } from "./freeze";
 import { update } from "./update";
@@ -26,19 +26,22 @@ export async function run(args: string[], claudeDir = DEFAULT_CLAUDE_DIR): Promi
 
   switch (command) {
     case "install": {
-      const skills = await readSkillfile(join(claudeDir, "Skillfile"));
+      const skillsets = await readSkillfile(join(claudeDir, "Skillfile"));
+      const skills = flattenSkillsets(skillsets);
       await install(skills, claudeDir);
       return { output: `Installed ${skills.length} skill(s).`, exitCode: 0 };
     }
     case "freeze": {
-      const skills = await readSkillfile(join(claudeDir, "Skillfile"));
+      const skillsets = await readSkillfile(join(claudeDir, "Skillfile"));
+      const skills = flattenSkillsets(skillsets);
       await freeze(skills, claudeDir);
       return { output: `Pinned ${skills.length} skill(s) to Skillfile.lock.`, exitCode: 0 };
     }
     case "update": {
       const [, name] = args;
       if (!name) return { output: "Usage: skill-set update <name>", exitCode: 1 };
-      const skills = await readSkillfile(join(claudeDir, "Skillfile"));
+      const skillsets = await readSkillfile(join(claudeDir, "Skillfile"));
+      const skills = flattenSkillsets(skillsets);
       try {
         await update(name, skills, claudeDir);
         return { output: `Updated ${name}.`, exitCode: 0 };

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { $ } from "bun";
 import { setupInstalledRepo, setupTestRepo } from "./test-helpers";
 import { fork } from "./fork";
-import { readSkillfile, cloneDirName } from "./config";
+import { readSkillfile, flattenSkillsets } from "./config";
 import { install } from "./install";
 
 describe("fork", () => {
@@ -26,10 +26,10 @@ describe("fork", () => {
 
     await fork("my-skill", forkRepo, claudeDir);
 
-    const skills = await readSkillfile(join(claudeDir, "Skillfile"));
-    expect(skills[0].origin).toBe(forkRepo);
+    const skillsets = await readSkillfile(join(claudeDir, "Skillfile"));
+    expect(skillsets[0].origin).toBe(forkRepo);
 
-    const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skills[0]));
+    const cloneDir = join(claudeDir, "skill-repos", skillsets[0].name);
     const remote = (await $`git -C ${cloneDir} remote get-url origin`.quiet()).stdout.toString().trim();
     expect(remote).toBe(forkRepo);
   });
@@ -62,6 +62,12 @@ describe("fork", () => {
     const cloneDir = join(claudeDir, "skill-repos", "my-set");
     const remote = (await $`git -C ${cloneDir} remote get-url origin`.quiet()).stdout.toString().trim();
     expect(remote).toBe(forkRepo);
+
+    // Verify Skillfile preserves [[skillset]] format
+    const skillsets = await readSkillfile(join(claudeDir, "Skillfile"));
+    expect(skillsets).toHaveLength(1);
+    expect(skillsets[0].skills).toEqual(["my-skill", "skill-b"]);
+    expect(skillsets[0].origin).toBe(forkRepo);
   });
 
   it("throws when skillset not found", async () => {
