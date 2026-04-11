@@ -3,6 +3,9 @@
 A git-native manager for Claude Code skills — declare your skills in a `Skillfile`,
 install, customize, and track upstream changes without losing your edits.
 
+**Skill-set** — as a noun, it's the skillset for your AI agent; as a verb, *set* (pin)
+your skills to specific versions.
+
 **Skill-set** applies familiar ideas from the tools you already use:
 
 - [GNU Stow](https://www.gnu.org/software/stow/) — manages dotfiles as symlinked packages
