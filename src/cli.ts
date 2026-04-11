@@ -39,10 +39,12 @@ export async function run(args: string[], claudeDir = DEFAULT_CLAUDE_DIR): Promi
       const [, name] = args;
       if (!name) return { output: "Usage: skill-set update <name>", exitCode: 1 };
       const skills = await readSkillfile(join(claudeDir, "Skillfile"));
-      const skill = skills.find((s) => s.name === name);
-      if (!skill) return { output: `Skill "${name}" not found in Skillfile`, exitCode: 1 };
-      await update(skill, claudeDir);
-      return { output: `Updated ${name}.`, exitCode: 0 };
+      try {
+        await update(name, skills, claudeDir);
+        return { output: `Updated ${name}.`, exitCode: 0 };
+      } catch (e: any) {
+        return { output: e.message, exitCode: 1 };
+      }
     }
 case "fork": {
       const [, name, newOrigin] = args;
