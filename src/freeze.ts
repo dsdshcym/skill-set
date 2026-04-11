@@ -4,10 +4,21 @@ import { cloneDirName, type Skill } from "./config";
 import { serializeLockfile } from "./lock";
 
 export async function freeze(skills: Skill[], claudeDir: string): Promise<void> {
-  const pins: Record<string, string> = {};
+  const pinned = new Map<string, string>();
+
   for (const skill of skills) {
-    const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
-    pins[skill.name] = (await $`git -C ${cloneDir} rev-parse HEAD`.quiet()).stdout.toString().trim();
+    const dirName = cloneDirName(skill);
+    if (!pinned.has(dirName)) {
+      const cloneDir = join(claudeDir, "skill-repos", dirName);
+      const pin = (await $`git -C ${cloneDir} rev-parse HEAD`.quiet()).stdout.toString().trim();
+      pinned.set(dirName, pin);
+    }
   }
-  await Bun.write(join(claudeDir, "Skillfile.lock"), serializeLockfile(pins));
+
+  const locked: Skill[] = skills.map((s) => ({
+    ...s,
+    pin: pinned.get(cloneDirName(s))!,
+  }));
+
+  await Bun.write(join(claudeDir, "Skillfile.lock"), serializeLockfile(locked));
 }
