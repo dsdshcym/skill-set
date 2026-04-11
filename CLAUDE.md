@@ -43,12 +43,15 @@ cli.ts → install.ts, freeze.ts, update.ts, fork.ts
 ```typescript
 interface Skill {
   name: string;
-  origin: string;    // git repo URL
-  path: string;      // subpath within repo
+  origin: string;     // git repo URL
+  path: string;       // fully resolved subpath within repo
+  skillset?: string;  // grouping key — skills sharing a skillset share one clone
   branch?: string;
-  pin?: string;      // pinned commit hash
+  pin?: string;       // pinned commit hash
 }
 ```
+
+The Skillfile supports `[[skill]]` (single skill, backwards compat) and `[[skillset]]` (multiple skills from one repo). Both parse into `Skill[]`. The `skillset` field determines the clone directory name (`skill-repos/{skillset}/`).
 
 ## Testing Conventions
 
