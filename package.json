@@ -1,8 +1,8 @@
 {
-  "name": "skillstow",
+  "name": "skill-set",
   "version": "0.1.0",
   "scripts": {
     "test": "bun test",
-    "build": "bun build --compile src/cli.ts --outfile skillstow"
+    "build": "bun build --compile src/cli.ts --outfile skill-set"
   }
 }

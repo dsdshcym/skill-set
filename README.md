@@ -1,9 +1,9 @@
-# Skillstow
+# Skill-set
 
 A git-native manager for Claude Code skills — declare your skills in a `Skillfile`,
 install, customize, and track upstream changes without losing your edits.
 
-**Skillstow** applies familiar ideas from the tools you already use:
+**Skill-set** applies familiar ideas from the tools you already use:
 
 - [GNU Stow](https://www.gnu.org/software/stow/) — manages dotfiles as symlinked packages
 - [straight.el](https://github.com/radian-software/straight.el) — each Emacs package is a live git clone you can fork, edit, and merge upstream changes into
@@ -37,7 +37,7 @@ name    = "extract-notes"
 origin  = "https://github.com/dsdshcym/dotfiles"
 path    = ".claude/skills/extract-notes"   # subpath within repo
 branch  = "master"
-pin     = "abc1234"                        # written by skillstow freeze
+pin     = "abc1234"                        # written by skill-set freeze
 
 [[skill]]
 name    = "git-commit-messages"
@@ -56,17 +56,17 @@ pin     = "def5678"
 
 | Command | Effect |
 |---------|--------|
-| `skillstow install` | Clone/fetch origins, checkout pinned commits, symlink into `~/.claude/skills/` |
-| `skillstow update <name>` | `git fetch origin`, merge upstream, update `Skillfile.lock` |
-| `skillstow freeze` | Write current HEAD of every skill into `Skillfile.lock` |
-| `skillstow add <url> [path]` | Append to `Skillfile`, run install |
-| `skillstow fork <name> <your-url>` | Change origin, push current state, continue tracking |
+| `skill-set install` | Clone/fetch origins, checkout pinned commits, symlink into `~/.claude/skills/` |
+| `skill-set update <name>` | `git fetch origin`, merge upstream, update `Skillfile.lock` |
+| `skill-set freeze` | Write current HEAD of every skill into `Skillfile.lock` |
+| `skill-set add <url> [path]` | Append to `Skillfile`, run install |
+| `skill-set fork <name> <your-url>` | Change origin, push current state, continue tracking |
 
 ### Directory layout
 
 ```
 ~/.claude/
-├── skills/                  # symlinks managed by skillstow
+├── skills/                  # symlinks managed by skill-set
 │   ├── extract-notes -> ~/.claude/skill-repos/extract-notes/.claude/skills/extract-notes
 │   ├── git-commit-messages -> ~/.claude/skill-repos/git-commit-messages/.claude/skills/git-commit-messages
 │   └── tdd -> ~/.claude/skill-repos/tdd/tdd
@@ -90,5 +90,5 @@ This means skills that share an upstream repo can be forked and customized indep
 ## Compatibility
 
 Skills are compatible with manual install (just copy the `SKILL.md` folder) and
-publishable to CCPI/npm for discoverability. Skillstow adds a git-native workflow on top,
+publishable to CCPI/npm for discoverability. Skill-set adds a git-native workflow on top,
 not a new format.

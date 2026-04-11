@@ -8,7 +8,7 @@ describe("run", () => {
   let claudeDir: string;
 
   beforeEach(async () => {
-    claudeDir = await mkdtemp(join(tmpdir(), "skillstow-cli-test-"));
+    claudeDir = await mkdtemp(join(tmpdir(), "skill-set-cli-test-"));
   });
 
   afterEach(async () => {

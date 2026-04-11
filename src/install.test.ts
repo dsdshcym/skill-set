@@ -13,7 +13,7 @@ describe("install", () => {
   let claudeDir: string;
 
   beforeEach(async () => {
-    tmpDir = await mkdtemp(join(tmpdir(), "skillstow-test-"));
+    tmpDir = await mkdtemp(join(tmpdir(), "skill-set-test-"));
     originRepo = join(tmpDir, "origin");
     claudeDir = join(tmpDir, ".claude");
 

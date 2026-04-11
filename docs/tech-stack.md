@@ -9,7 +9,7 @@
 
 ## Distribution: compiled binary
 
-- `brew install skillstow` via a tap (primary)
+- `brew install skill-set` via a tap (primary)
 - Direct binary download as fallback
 - No Node/Bun required on the user's machine
 
@@ -38,11 +38,11 @@ package.json
 
 | Command | Effect |
 |---------|--------|
-| `skillstow install` | Clone/fetch origins, checkout pinned commits, symlink into `~/.claude/skills/` |
-| `skillstow update <name>` | `git fetch origin`, merge upstream, update `Skillfile.lock` |
-| `skillstow freeze` | Write current HEAD of every skill into `Skillfile.lock` |
-| `skillstow add <url> [path]` | Append to `Skillfile`, run install |
-| `skillstow fork <name> <your-url>` | Change origin, push current state, continue tracking |
+| `skill-set install` | Clone/fetch origins, checkout pinned commits, symlink into `~/.claude/skills/` |
+| `skill-set update <name>` | `git fetch origin`, merge upstream, update `Skillfile.lock` |
+| `skill-set freeze` | Write current HEAD of every skill into `Skillfile.lock` |
+| `skill-set add <url> [path]` | Append to `Skillfile`, run install |
+| `skill-set fork <name> <your-url>` | Change origin, push current state, continue tracking |
 
 ## Open Questions
 

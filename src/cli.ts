@@ -9,7 +9,7 @@ import { fork } from "./fork";
 const DEFAULT_CLAUDE_DIR = join(process.env.HOME ?? "~", ".claude");
 
 const HELP = `\
-Usage: skillstow <command> [args]
+Usage: skill-set <command> [args]
 
 Commands:
   install                   Clone/fetch skills and symlink into ~/.claude/skills/
@@ -39,7 +39,7 @@ export async function run(args: string[], claudeDir = DEFAULT_CLAUDE_DIR): Promi
     }
     case "update": {
       const [, name] = args;
-      if (!name) return { output: "Usage: skillstow update <name>", exitCode: 1 };
+      if (!name) return { output: "Usage: skill-set update <name>", exitCode: 1 };
       const skills = await readSkillfile(join(claudeDir, "Skillfile"));
       const skill = skills.find((s) => s.name === name);
       if (!skill) return { output: `Skill "${name}" not found in Skillfile`, exitCode: 1 };
@@ -48,7 +48,7 @@ export async function run(args: string[], claudeDir = DEFAULT_CLAUDE_DIR): Promi
     }
     case "add": {
       const [, url, path] = args;
-      if (!url) return { output: "Usage: skillstow add <url> [path]", exitCode: 1 };
+      if (!url) return { output: "Usage: skill-set add <url> [path]", exitCode: 1 };
       const skillPath = path ?? ".";
       const name = skillPath === "." ? url.split("/").pop()!.replace(/\.git$/, "") : skillPath.split("/").pop()!;
       await add({ name, origin: url, path: skillPath }, claudeDir);
@@ -56,7 +56,7 @@ export async function run(args: string[], claudeDir = DEFAULT_CLAUDE_DIR): Promi
     }
     case "fork": {
       const [, name, newOrigin] = args;
-      if (!name || !newOrigin) return { output: "Usage: skillstow fork <name> <url>", exitCode: 1 };
+      if (!name || !newOrigin) return { output: "Usage: skill-set fork <name> <url>", exitCode: 1 };
       try {
         await fork(name, newOrigin, claudeDir);
         return { output: `Forked ${name} to ${newOrigin}.`, exitCode: 0 };

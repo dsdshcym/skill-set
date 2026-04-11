@@ -8,7 +8,7 @@ Each step is independently runnable and adds real value.
 - `src/cli.ts` with argument parsing (hardcode subcommands, no library)
 - Prints help and exits cleanly
 
-**Runnable:** `skillstow --help`
+**Runnable:** `skill-set --help`
 
 ## Step 2: `install`
 
@@ -17,14 +17,14 @@ Each step is independently runnable and adds real value.
 - Symlink `~/.claude/skill-repos/<repo>/<path>` → `~/.claude/skills/<name>`
 - If skill already cloned, `git fetch` instead
 
-**Runnable:** `skillstow install` — skills appear in `~/.claude/skills/`
+**Runnable:** `skill-set install` — skills appear in `~/.claude/skills/`
 
 ## Step 3: `freeze`
 
 - Read current HEAD of each skill-repo clone
 - Write pins into `Skillfile.lock`
 
-**Runnable:** `skillstow freeze` — produces a `Skillfile.lock`
+**Runnable:** `skill-set freeze` — produces a `Skillfile.lock`
 
 ## Step 4: `update <name>`
 
@@ -32,14 +32,14 @@ Each step is independently runnable and adds real value.
 - Merge upstream into current branch
 - Update pin in `Skillfile.lock`
 
-**Runnable:** `skillstow update extract-notes` — pulls latest, updates lock
+**Runnable:** `skill-set update extract-notes` — pulls latest, updates lock
 
 ## Step 5: `add <url> [path]`
 
 - Append new `[[skill]]` entry to `Skillfile`
 - Run install for the new skill only
 
-**Runnable:** `skillstow add https://github.com/someone/dotfiles .claude/skills/foo`
+**Runnable:** `skill-set add https://github.com/someone/dotfiles .claude/skills/foo`
 
 ## Step 6: `fork <name> <your-url>`
 
@@ -47,4 +47,4 @@ Each step is independently runnable and adds real value.
 - `git remote set-url origin <your-url>`
 - `git push -u origin`
 
-**Runnable:** `skillstow fork extract-notes https://github.com/you/dotfiles`
+**Runnable:** `skill-set fork extract-notes https://github.com/you/dotfiles`

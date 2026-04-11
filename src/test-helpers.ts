@@ -5,7 +5,7 @@ import { $ } from "bun";
 import { install } from "./install";
 
 export async function setupTestRepo() {
-  const tmpDir = await mkdtemp(join(tmpdir(), "skillstow-test-"));
+  const tmpDir = await mkdtemp(join(tmpdir(), "skill-set-test-"));
   const originRepo = join(tmpDir, "origin");
   const claudeDir = join(tmpDir, ".claude");
 
