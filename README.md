@@ -34,26 +34,34 @@ Each skill is a git clone, pinned in a `Skillfile.lock`, forkable and merge-trac
 
 ### Skillfile (`~/.claude/Skillfile`)
 
+A `[[skillset]]` groups multiple skills from one repo — one clone, many symlinks.
+A `[[skill]]` is a standalone skill from its own repo.
+
 ```toml
-[[skill]]
-name    = "extract-notes"
-origin  = "https://github.com/dsdshcym/dotfiles"
-path    = ".claude/skills/extract-notes"   # subpath within repo
-branch  = "master"
-pin     = "abc1234"                        # written by skill-set freeze
+[[skillset]]
+name      = "dotfiles"
+origin    = "https://github.com/dsdshcym/dotfiles"
+root_path = ".claude/skills"
+branch    = "macos"
+skills    = [
+  "extract-notes",
+  "extract-notes-zoom",
+  "git-commit-messages",
+  "so-far",
+]
+
+[[skillset]]
+name      = "gsuite-skills"
+origin    = "https://github.com/dsdshcym/gsuite-skills.git"
+skills    = ["gdoc", "gmail", "gsheet", "gws-base"]
 
 [[skill]]
-name    = "git-commit-messages"
-origin  = "https://github.com/dsdshcym/dotfiles"
-path    = ".claude/skills/git-commit-messages"
-branch  = "master"
-
-[[skill]]
-name    = "tdd"
-origin  = "https://github.com/anthropics/claude-skills"
-path    = "tdd"
-pin     = "def5678"
+name   = "people"
+origin = "https://github.com/dsdshcym/people-skill.git"
 ```
+
+- `[[skillset]]`: `root_path` (default `""`) is prepended to each skill name to form the path within the repo
+- `[[skill]]`: `path` is the direct path to the skill within the repo. Omit for repo-root skills.
 
 ### Commands
 
@@ -62,27 +70,29 @@ pin     = "def5678"
 | `skill-set install` | Clone/fetch origins, checkout pinned commits, symlink into `~/.claude/skills/` |
 | `skill-set update <name>` | `git fetch origin`, merge upstream, update `Skillfile.lock` |
 | `skill-set freeze` | Write current HEAD of every skill into `Skillfile.lock` |
-| `skill-set add <url> [path]` | Append to `Skillfile`, run install |
 | `skill-set fork <name> <your-url>` | Change origin, push current state, continue tracking |
+
+Edit the Skillfile directly to add or remove skills, then run `skill-set install`.
 
 ### Directory layout
 
 ```
 ~/.claude/
 ├── skills/                  # symlinks managed by skill-set
-│   ├── extract-notes -> ~/.claude/skill-repos/extract-notes/.claude/skills/extract-notes
-│   ├── git-commit-messages -> ~/.claude/skill-repos/git-commit-messages/.claude/skills/git-commit-messages
-│   └── tdd -> ~/.claude/skill-repos/tdd/tdd
+│   ├── extract-notes     -> ../skill-repos/dotfiles/.claude/skills/extract-notes
+│   ├── git-commit-messages -> ../skill-repos/dotfiles/.claude/skills/git-commit-messages
+│   ├── gdoc              -> ../skill-repos/gsuite-skills/gdoc
+│   └── people            -> ../skill-repos/people
 ├── skill-repos/             # git clones (source of truth)
-│   ├── extract-notes/       # cloned from dsdshcym/dotfiles
-│   ├── git-commit-messages/ # cloned from dsdshcym/dotfiles
-│   └── tdd/                 # cloned from anthropics/claude-skills
+│   ├── dotfiles/            # one clone, many skills
+│   ├── gsuite-skills/       # one clone, many skills
+│   └── people/              # standalone skill
 ├── Skillfile                # your declarations
 └── Skillfile.lock           # pinned commits, auto-generated
 ```
 
-Each skill gets its own independent clone, named after the skill. 
-This means skills that share an upstream repo can be forked and customized independently.
+A `[[skillset]]` shares one clone for all its skills.
+A `[[skill]]` gets its own clone, named after the skill.
 
 ### Non-goals
 
