@@ -4,6 +4,7 @@ import { install } from "./install";
 import { freeze } from "./freeze";
 import { update } from "./update";
 import { fork } from "./fork";
+import { newSkill } from "./new";
 
 const DEFAULT_CLAUDE_DIR = join(process.env.HOME ?? "~", ".claude");
 
@@ -11,6 +12,7 @@ const HELP = `\
 Usage: skill-set <command> [args]
 
 Commands:
+  new <name> [--in <set>]   Scaffold a new skill (standalone or in a skillset)
   install                   Clone/fetch skills and symlink into ~/.claude/skills/
   update <name>             Fetch and merge upstream changes for a skillset
   freeze                    Pin all skills to their current HEAD in Skillfile.lock
@@ -25,6 +27,19 @@ export async function run(args: string[], claudeDir = DEFAULT_CLAUDE_DIR): Promi
   }
 
   switch (command) {
+    case "new": {
+      const [, name, ...rest] = args;
+      if (!name) return { output: "Usage: skill-set new <name> [--in <skillset>]", exitCode: 1 };
+      const inIdx = rest.indexOf("--in");
+      const inSkillset = inIdx !== -1 ? rest[inIdx + 1] : undefined;
+      const data = await readSkillfile(join(claudeDir, "Skillfile"));
+      try {
+        const path = await newSkill(name, inSkillset, data, claudeDir);
+        return { output: path, exitCode: 0 };
+      } catch (e: any) {
+        return { output: e.message, exitCode: 1 };
+      }
+    }
     case "install": {
       const data = await readSkillfile(join(claudeDir, "Skillfile"));
       const count = data.skills.length + data.skillsets.reduce((n, ss) => n + ss.skills.length, 0);

@@ -60,4 +60,22 @@ describe("run", () => {
     expect(exitCode).toBe(1);
     expect(output).toContain("nonexistent");
   });
+
+  it("exits 1 when new has no name", async () => {
+    const { output, exitCode } = await run(["new"], claudeDir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("Usage:");
+  });
+
+  it("new creates standalone skill and prints path", async () => {
+    const { output, exitCode } = await run(["new", "my-skill"], claudeDir);
+    expect(exitCode).toBe(0);
+    expect(output).toContain(join(claudeDir, "skill-repos", "my-skill"));
+  });
+
+  it("exits 1 when new --in references unknown skillset", async () => {
+    const { output, exitCode } = await run(["new", "x", "--in", "nope"], claudeDir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("nope");
+  });
 });
