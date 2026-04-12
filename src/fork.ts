@@ -4,16 +4,18 @@ import { readSkillfile, serializeSkillfile } from "./config";
 
 export async function fork(name: string, newOrigin: string, claudeDir: string): Promise<void> {
   const skillfilePath = join(claudeDir, "Skillfile");
-  const skillsets = await readSkillfile(skillfilePath);
+  const data = await readSkillfile(skillfilePath);
 
-  // Check if name matches an individual skill in a multi-skill skillset
-  const asParent = skillsets.find((ss) => ss.skills.includes(name) && ss.name !== name);
-  if (asParent) {
-    throw new Error(`"${name}" is part of skillset "${asParent.name}". Run: skill-set fork ${asParent.name} <url>`);
+  // Check if name is an individual skill inside a multi-skill skillset
+  const parentSet = data.skillsets.find((ss) => ss.skills.includes(name) && ss.name !== name);
+  if (parentSet) {
+    throw new Error(`"${name}" is part of skillset "${parentSet.name}". Run: skill-set fork ${parentSet.name} <url>`);
   }
 
-  const skillset = skillsets.find((ss) => ss.name === name);
-  if (!skillset) {
+  // Find as standalone skill or skillset
+  const asSkill = data.skills.find((s) => s.name === name);
+  const asSkillset = data.skillsets.find((ss) => ss.name === name);
+  if (!asSkill && !asSkillset) {
     throw new Error(`Skillset "${name}" not found in Skillfile`);
   }
 
@@ -23,6 +25,7 @@ export async function fork(name: string, newOrigin: string, claudeDir: string): 
   const branch = (await $`git -C ${cloneDir} rev-parse --abbrev-ref HEAD`.quiet()).stdout.toString().trim();
   await $`git -C ${cloneDir} push -u origin ${branch}`.quiet();
 
-  skillset.origin = newOrigin;
-  await Bun.write(skillfilePath, serializeSkillfile(skillsets));
+  if (asSkill) asSkill.origin = newOrigin;
+  if (asSkillset) asSkillset.origin = newOrigin;
+  await Bun.write(skillfilePath, serializeSkillfile(data));
 }

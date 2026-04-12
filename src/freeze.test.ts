@@ -4,7 +4,6 @@ import { join } from "node:path";
 import { $ } from "bun";
 import { setupInstalledRepo, setupTestRepo } from "./test-helpers";
 import { freeze } from "./freeze";
-import { cloneDirName } from "./config";
 import { readLockfile } from "./lock";
 import { install } from "./install";
 
@@ -13,29 +12,30 @@ describe("freeze", () => {
 
   afterEach(async () => { await rm(tmpDir, { recursive: true }); });
 
-  it("writes current HEAD of each skill to Skillfile.lock", async () => {
+  it("writes current HEAD to Skillfile.lock", async () => {
     const { tmpDir: td, originRepo, claudeDir } = await setupInstalledRepo();
     tmpDir = td;
-    const skill = { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", skillset: "my-skill" };
-    const cloneDir = join(claudeDir, "skill-repos", cloneDirName(skill));
+    const cloneDir = join(claudeDir, "skill-repos", "my-skill");
     const expectedPin = (await $`git -C ${cloneDir} rev-parse HEAD`.quiet()).stdout.toString().trim();
 
-    await freeze([skill], claudeDir);
+    await freeze(
+      { skills: [{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }], skillsets: [] },
+      claudeDir
+    );
 
     const locked = await readLockfile(join(claudeDir, "Skillfile.lock"));
     expect(locked).toHaveLength(1);
     expect(locked[0].name).toBe("my-skill");
     expect(locked[0].pin).toBe(expectedPin);
-    expect(locked[0].skillset).toBe("my-skill");
   });
 
   it("overwrites existing Skillfile.lock", async () => {
     const { tmpDir: td, originRepo, claudeDir } = await setupInstalledRepo();
     tmpDir = td;
-    const skills = [{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", skillset: "my-skill" }];
+    const data = { skills: [{ name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill" }], skillsets: [] };
 
-    await freeze(skills, claudeDir);
-    await freeze(skills, claudeDir);
+    await freeze(data, claudeDir);
+    await freeze(data, claudeDir);
 
     const locked = await readLockfile(join(claudeDir, "Skillfile.lock"));
     expect(locked).toHaveLength(1);
@@ -50,12 +50,17 @@ describe("freeze", () => {
     await $`git -C ${originRepo} add .`.quiet();
     await $`git -C ${originRepo} -c commit.gpgsign=false commit -m "add skill-b"`.quiet();
 
-    const skills = [
-      { name: "my-skill", origin: originRepo, path: ".claude/skills/my-skill", skillset: "my-set" },
-      { name: "skill-b", origin: originRepo, path: ".claude/skills/skill-b", skillset: "my-set" },
-    ];
-    await install(skills, claudeDir);
-    await freeze(skills, claudeDir);
+    const data = {
+      skills: [],
+      skillsets: [{
+        name: "my-set",
+        origin: originRepo,
+        root_path: ".claude/skills",
+        skills: ["my-skill", "skill-b"],
+      }],
+    };
+    await install(data, claudeDir);
+    await freeze(data, claudeDir);
 
     const locked = await readLockfile(join(claudeDir, "Skillfile.lock"));
     expect(locked).toHaveLength(2);

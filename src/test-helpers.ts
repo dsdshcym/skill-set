@@ -24,7 +24,7 @@ export async function setupTestRepo() {
 export async function setupInstalledRepo() {
   const env = await setupTestRepo();
   await install(
-    [{ name: "my-skill", origin: env.originRepo, path: ".claude/skills/my-skill", skillset: "my-skill" }],
+    { skills: [{ name: "my-skill", origin: env.originRepo, path: ".claude/skills/my-skill" }], skillsets: [] },
     env.claudeDir
   );
   return env;

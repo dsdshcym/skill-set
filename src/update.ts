@@ -1,17 +1,19 @@
 import { join } from "node:path";
 import { $ } from "bun";
-import { cloneDirName, type Skill } from "./config";
+import type { SkillfileData } from "./config";
 import { readLockfile, serializeLockfile } from "./lock";
 
-export async function update(name: string, skills: Skill[], claudeDir: string): Promise<void> {
-  // Check if name matches an individual skill that belongs to a multi-skill skillset
-  const asSkill = skills.find((s) => s.name === name && s.skillset !== name);
-  if (asSkill) {
-    throw new Error(`"${name}" is part of skillset "${asSkill.skillset}". Run: skill-set update ${asSkill.skillset}`);
+export async function update(name: string, data: SkillfileData, claudeDir: string): Promise<void> {
+  // Check if name is an individual skill inside a multi-skill skillset
+  const parentSet = data.skillsets.find((ss) => ss.skills.includes(name) && ss.name !== name);
+  if (parentSet) {
+    throw new Error(`"${name}" is part of skillset "${parentSet.name}". Run: skill-set update ${parentSet.name}`);
   }
 
-  const group = skills.filter((s) => cloneDirName(s) === name);
-  if (group.length === 0) {
+  // Find as standalone skill or skillset
+  const asSkill = data.skills.find((s) => s.name === name);
+  const asSkillset = data.skillsets.find((ss) => ss.name === name);
+  if (!asSkill && !asSkillset) {
     throw new Error(`Skillset "${name}" not found`);
   }
 
@@ -23,8 +25,11 @@ export async function update(name: string, skills: Skill[], claudeDir: string): 
 
   const lockfilePath = join(claudeDir, "Skillfile.lock");
   const locked = await readLockfile(lockfilePath);
-  const updated = locked.map((s) =>
-    cloneDirName(s) === name ? { ...s, pin: newHead } : s
-  );
+  const updated = locked.map((s) => {
+    if (s.name === name || s.skillset === name) {
+      return { ...s, pin: newHead };
+    }
+    return s;
+  });
   await Bun.write(lockfilePath, serializeLockfile(updated));
 }

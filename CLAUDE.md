@@ -41,17 +41,12 @@ cli.ts → install.ts, freeze.ts, update.ts, fork.ts
 
 **Core data model** (`config.ts`):
 ```typescript
-interface Skill {
-  name: string;
-  origin: string;     // git repo URL
-  path: string;       // fully resolved subpath within repo
-  skillset?: string;  // grouping key — skills sharing a skillset share one clone
-  branch?: string;
-  pin?: string;       // pinned commit hash
-}
+interface Skill { name, origin, path, skillset?, branch?, pin? }
+interface Skillset { name, origin, root_path, skills[], branch?, pin? }
+interface SkillfileData { skills: Skill[], skillsets: Skillset[] }
 ```
 
-The Skillfile supports `[[skill]]` (single skill, backwards compat) and `[[skillset]]` (multiple skills from one repo). Both parse into `Skill[]`. The `skillset` field determines the clone directory name (`skill-repos/{skillset}/`).
+The Skillfile supports `[[skill]]` (direct path) and `[[skillset]]` (root_path + skills[] prefix derivation). Each parses into its native type. Commands work with both directly — only `freeze` expands skillsets into individual lock entries.
 
 ## Testing Conventions
 
