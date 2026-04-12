@@ -14,10 +14,10 @@ export function serializeLockfile(skills: Skill[]): string {
           `[[skill]]`,
           `name     = "${s.name}"`,
           `origin   = "${s.origin}"`,
-          `path     = "${s.path}"`,
-          `pin      = "${s.pin}"`,
-          `skillset = "${s.skillset}"`,
         ];
+        if (s.path) lines.push(`path     = "${s.path}"`);
+        lines.push(`pin      = "${s.pin}"`);
+        if (s.skillset) lines.push(`skillset = "${s.skillset}"`);
         return lines.join("\n");
       })
       .join("\n\n") + "\n"
