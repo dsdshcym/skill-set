@@ -67,6 +67,7 @@ origin = "https://github.com/dsdshcym/people-skill.git"
 
 | Command | Effect |
 |---------|--------|
+| `skill-set new <name> [--in <set>]` | Scaffold a new skill (standalone git repo or inside an existing skillset) |
 | `skill-set install` | Clone/fetch origins, checkout pinned commits, symlink into `~/.claude/skills/` |
 | `skill-set update <name>` | `git fetch origin`, merge upstream, update `Skillfile.lock` |
 | `skill-set freeze` | Write current HEAD of every skill into `Skillfile.lock` |
@@ -97,7 +98,7 @@ A `[[skill]]` gets its own clone, named after the skill.
 ### Non-goals
 
 - No registry / discovery — use existing: [`travisvn/awesome-claude-skills`](https://github.com/travisvn/awesome-claude-skills)
-- No skill authoring tooling — use Anthropic's SKILL.md spec directly
+- No skill authoring beyond scaffolding — `skill-set new` creates the directory and SKILL.md; use Anthropic's spec directly for content
 - No version negotiation — Claude handles compatibility
 
 ## Compatibility
