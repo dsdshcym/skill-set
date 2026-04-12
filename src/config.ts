@@ -12,6 +12,7 @@ export interface Skillset {
   origin: string;
   root_path: string;
   skills: string[];
+  path?: string;      // from [[skill]], overrides root_path derivation
   branch?: string;
   pin?: string;
 }
@@ -23,15 +24,28 @@ export function cloneDirName(skill: Skill): string {
 export function flattenSkillsets(skillsets: Skillset[]): Skill[] {
   const skills: Skill[] = [];
   for (const ss of skillsets) {
-    for (const skillName of ss.skills) {
+    if (ss.path !== undefined) {
+      // [[skill]] entry — use path directly
       skills.push({
-        name: skillName,
+        name: ss.name,
         origin: ss.origin,
-        path: ss.root_path ? `${ss.root_path}/${skillName}` : skillName,
+        path: ss.path,
         skillset: ss.name,
         ...(ss.branch ? { branch: ss.branch } : {}),
         ...(ss.pin ? { pin: ss.pin } : {}),
       });
+    } else {
+      // [[skillset]] entry — derive path from root_path
+      for (const skillName of ss.skills) {
+        skills.push({
+          name: skillName,
+          origin: ss.origin,
+          path: ss.root_path ? `${ss.root_path}/${skillName}` : skillName,
+          skillset: ss.name,
+          ...(ss.branch ? { branch: ss.branch } : {}),
+          ...(ss.pin ? { pin: ss.pin } : {}),
+        });
+      }
     }
   }
   return skills;
@@ -43,7 +57,7 @@ export function parseSkillfile(content: string): Skillset[] {
   interface RawSkill {
     name: string;
     origin: string;
-    path: string;
+    path?: string;
     branch?: string;
     pin?: string;
   }
@@ -59,20 +73,15 @@ export function parseSkillfile(content: string): Skillset[] {
 
   const parsed = Bun.TOML.parse(content) as { skill?: RawSkill[]; skillset?: RawSkillset[] };
 
-  const skillsets: Skillset[] = (parsed.skill ?? []).map((s) => {
-    const lastSlash = s.path.lastIndexOf("/");
-    const rootPath = lastSlash === -1 ? "" : s.path.slice(0, lastSlash);
-    const skillName = lastSlash === -1 ? s.path : s.path.slice(lastSlash + 1);
-
-    return {
-      name: s.name,
-      origin: s.origin,
-      root_path: rootPath,
-      skills: [skillName],
-      ...(s.branch ? { branch: s.branch } : {}),
-      ...(s.pin ? { pin: s.pin } : {}),
-    };
-  });
+  const skillsets: Skillset[] = (parsed.skill ?? []).map((s) => ({
+    name: s.name,
+    origin: s.origin,
+    root_path: "",
+    skills: [s.name],
+    path: s.path ?? "",
+    ...(s.branch ? { branch: s.branch } : {}),
+    ...(s.pin ? { pin: s.pin } : {}),
+  }));
 
   for (const ss of parsed.skillset ?? []) {
     skillsets.push({
@@ -92,20 +101,19 @@ export function serializeSkillfile(skillsets: Skillset[]): string {
   return (
     skillsets
       .map((ss) => {
-        if (ss.skills.length === 1 && ss.skills[0] === ss.name) {
-          // Single-skill skillset → write as [[skill]]
-          const path = ss.root_path ? `${ss.root_path}/${ss.skills[0]}` : ss.skills[0];
+        if (ss.path !== undefined) {
+          // [[skill]] entry
           const lines = [
             `[[skill]]`,
             `name   = "${ss.name}"`,
             `origin = "${ss.origin}"`,
-            `path   = "${path}"`,
           ];
+          if (ss.path) lines.push(`path   = "${ss.path}"`);
           if (ss.branch) lines.push(`branch = "${ss.branch}"`);
           if (ss.pin) lines.push(`pin    = "${ss.pin}"`);
           return lines.join("\n");
         } else {
-          // Multi-skill → write as [[skillset]]
+          // [[skillset]] entry
           const lines = [
             `[[skillset]]`,
             `name      = "${ss.name}"`,

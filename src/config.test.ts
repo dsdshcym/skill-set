@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test";
 import { parseSkillfile, flattenSkillsets, serializeSkillfile, cloneDirName, type Skillset } from "./config";
 
 describe("parseSkillfile", () => {
-  it("parses a single [[skill]] as a single-skill Skillset", () => {
+  it("parses a single [[skill]] preserving path as-is", () => {
     const skillsets = parseSkillfile(`
 [[skill]]
 name   = "extract-notes"
@@ -13,8 +13,9 @@ path   = ".claude/skills/extract-notes"
     expect(skillsets[0]).toEqual({
       name: "extract-notes",
       origin: "https://github.com/foo/dotfiles",
-      root_path: ".claude/skills",
+      root_path: "",
       skills: ["extract-notes"],
+      path: ".claude/skills/extract-notes",
     });
   });
 
@@ -30,6 +31,24 @@ path   = "tdd"
       origin: "https://github.com/anthropics/claude-skills",
       root_path: "",
       skills: ["tdd"],
+      path: "tdd",
+    });
+  });
+
+  it("parses [[skill]] with empty path (repo-root skill)", () => {
+    const skillsets = parseSkillfile(`
+[[skill]]
+name   = "people"
+origin = "https://github.com/dsdshcym/people-skill.git"
+path   = ""
+`);
+    expect(skillsets).toHaveLength(1);
+    expect(skillsets[0]).toEqual({
+      name: "people",
+      origin: "https://github.com/dsdshcym/people-skill.git",
+      root_path: "",
+      skills: ["people"],
+      path: "",
     });
   });
 
@@ -109,9 +128,10 @@ skills    = ["brainstorming", "debugging"]
 `);
     expect(skillsets).toHaveLength(2);
     expect(skillsets[0].name).toBe("tdd");
-    expect(skillsets[0].skills).toEqual(["tdd"]);
+    expect(skillsets[0].path).toBe("tdd");
     expect(skillsets[1].name).toBe("superpowers");
     expect(skillsets[1].skills).toEqual(["brainstorming", "debugging"]);
+    expect(skillsets[1].path).toBeUndefined();
   });
 
   it("[[skillset]] preserves branch and pin", () => {
@@ -130,24 +150,39 @@ pin       = "abc1234"
 });
 
 describe("flattenSkillsets", () => {
-  it("expands a single-skill skillset into one Skill", () => {
+  it("uses path directly for [[skill]] entries", () => {
     const skillsets: Skillset[] = [{
-      name: "tdd",
-      origin: "https://github.com/anthropics/claude-skills",
+      name: "extract-notes",
+      origin: "https://github.com/foo/dotfiles",
       root_path: "",
-      skills: ["tdd"],
+      skills: ["extract-notes"],
+      path: ".claude/skills/extract-notes",
     }];
     const skills = flattenSkillsets(skillsets);
     expect(skills).toHaveLength(1);
     expect(skills[0]).toEqual({
-      name: "tdd",
-      origin: "https://github.com/anthropics/claude-skills",
-      path: "tdd",
-      skillset: "tdd",
+      name: "extract-notes",
+      origin: "https://github.com/foo/dotfiles",
+      path: ".claude/skills/extract-notes",
+      skillset: "extract-notes",
     });
   });
 
-  it("expands a multi-skill skillset with root_path", () => {
+  it("uses empty path for repo-root skill", () => {
+    const skillsets: Skillset[] = [{
+      name: "people",
+      origin: "https://github.com/dsdshcym/people-skill.git",
+      root_path: "",
+      skills: ["people"],
+      path: "",
+    }];
+    const skills = flattenSkillsets(skillsets);
+    expect(skills).toHaveLength(1);
+    expect(skills[0].path).toBe("");
+    expect(skills[0].name).toBe("people");
+  });
+
+  it("derives path from root_path for [[skillset]] entries", () => {
     const skillsets: Skillset[] = [{
       name: "superpowers",
       origin: "https://github.com/someone/superpowers",
@@ -170,7 +205,7 @@ describe("flattenSkillsets", () => {
     });
   });
 
-  it("expands with empty root_path", () => {
+  it("derives path with empty root_path for [[skillset]]", () => {
     const skillsets: Skillset[] = [{
       name: "my-skills",
       origin: "https://github.com/someone/skills",
@@ -210,6 +245,18 @@ path   = "tdd"
     expect(parseSkillfile(serializeSkillfile(skillsets))).toEqual(skillsets);
   });
 
+  it("round-trips a [[skill]] with empty path", () => {
+    const skillsets: Skillset[] = [{
+      name: "people",
+      origin: "https://github.com/dsdshcym/people-skill.git",
+      root_path: "",
+      skills: ["people"],
+      path: "",
+    }];
+    const rt = parseSkillfile(serializeSkillfile(skillsets));
+    expect(rt).toEqual(skillsets);
+  });
+
   it("round-trips a [[skillset]] entry", () => {
     const input = `[[skillset]]
 name      = "superpowers"
@@ -237,12 +284,13 @@ skills    = ["brainstorming", "debugging"]
     expect(parseSkillfile(serializeSkillfile(skillsets))).toEqual(skillsets);
   });
 
-  it("writes single-skill skillset as [[skill]]", () => {
+  it("writes [[skill]] when path is present", () => {
     const skillsets: Skillset[] = [{
       name: "tdd",
       origin: "https://github.com/anthropics/claude-skills",
       root_path: "",
       skills: ["tdd"],
+      path: "tdd",
     }];
     const output = serializeSkillfile(skillsets);
     expect(output).toContain("[[skill]]");
@@ -250,7 +298,7 @@ skills    = ["brainstorming", "debugging"]
     expect(output).toContain('path   = "tdd"');
   });
 
-  it("writes multi-skill skillset as [[skillset]]", () => {
+  it("writes [[skillset]] when path is absent", () => {
     const skillsets: Skillset[] = [{
       name: "superpowers",
       origin: "https://github.com/someone/superpowers",
@@ -262,6 +310,19 @@ skills    = ["brainstorming", "debugging"]
     expect(output).not.toContain("[[skill]]");
     expect(output).toContain('root_path = "skills"');
     expect(output).toContain('skills    = ["brainstorming", "debugging"]');
+  });
+
+  it("omits path line when path is empty", () => {
+    const skillsets: Skillset[] = [{
+      name: "people",
+      origin: "https://github.com/dsdshcym/people-skill.git",
+      root_path: "",
+      skills: ["people"],
+      path: "",
+    }];
+    const output = serializeSkillfile(skillsets);
+    expect(output).toContain("[[skill]]");
+    expect(output).not.toContain("path");
   });
 });
 
