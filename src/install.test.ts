@@ -105,6 +105,23 @@ describe("install", () => {
     expect(stdout.toString().trim().split("\n")).toEqual(["my-set"]);
   });
 
+  it("installs a skillset with inline table skill entry (name differs from path)", async () => {
+    await install({
+      skills: [],
+      skillsets: [{
+        name: "tubi:pagerduty",
+        origin: originRepo,
+        root_path: ".claude/skills",
+        skills: [{ name: "tubi:pagerduty", path: "my-skill" }],
+      }],
+    }, claudeDir);
+
+    const sharedClone = join(claudeDir, "skill-repos", "tubi:pagerduty");
+    const linkTarget = await readlink(join(claudeDir, "skills", "tubi:pagerduty"));
+    expect(linkTarget).toBe(join(sharedClone, ".claude/skills/my-skill"));
+    expect(await Bun.file(join(sharedClone, ".claude/skills/my-skill/SKILL.md")).exists()).toBe(true);
+  });
+
   it("installs a repo-root skill with empty path", async () => {
     await install(
       { skills: [{ name: "my-skill", origin: originRepo, path: "" }], skillsets: [] },

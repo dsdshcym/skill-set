@@ -2,6 +2,7 @@ import { mkdir, symlink, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "bun";
 import type { Skill, Skillset, SkillfileData } from "./config";
+import { resolveSkillEntry } from "./config";
 
 async function dirExists(path: string): Promise<boolean> {
   return Bun.file(join(path, ".git", "HEAD")).exists();
@@ -42,9 +43,10 @@ export async function install(data: SkillfileData, claudeDir: string): Promise<v
   for (const ss of data.skillsets) {
     const cloneDir = join(reposDir, ss.name);
     await cloneOrFetch(cloneDir, ss.origin, ss.pin);
-    for (const skillName of ss.skills) {
-      const path = ss.root_path ? `${ss.root_path}/${skillName}` : skillName;
-      await createSymlink(skillsDir, skillName, join(cloneDir, path));
+    for (const entry of ss.skills) {
+      const { name, path } = resolveSkillEntry(entry);
+      const fullPath = ss.root_path ? `${ss.root_path}/${path}` : path;
+      await createSymlink(skillsDir, name, join(cloneDir, fullPath));
     }
   }
 }

@@ -7,14 +7,22 @@ export interface Skill {
   pin?: string;
 }
 
+export type SkillEntry = string | { name: string; path: string };
+
 export interface Skillset {
   name: string;
   origin: string;
   root_path: string;
-  skills: string[];
+  skills: SkillEntry[];
   branch?: string;
   pin?: string;
 }
+
+export function resolveSkillEntry(entry: SkillEntry): { name: string; path: string } {
+  if (typeof entry === "string") return { name: entry, path: entry };
+  return entry;
+}
+
 
 export interface SkillfileData {
   skills: Skill[];
@@ -30,7 +38,7 @@ export function parseSkillfile(content: string): SkillfileData {
 
   const parsed = Bun.TOML.parse(content) as {
     skill?: { name: string; origin: string; path?: string; branch?: string; pin?: string }[];
-    skillset?: { name: string; origin: string; root_path?: string; skills: string[]; branch?: string; pin?: string }[];
+    skillset?: { name: string; origin: string; root_path?: string; skills: (string | { name: string; path: string })[]; branch?: string; pin?: string }[];
   };
 
   const skills: Skill[] = (parsed.skill ?? []).map((s) => ({
@@ -75,7 +83,9 @@ export function serializeSkillfile(data: SkillfileData): string {
       `origin    = "${ss.origin}"`,
     ];
     if (ss.root_path) lines.push(`root_path = "${ss.root_path}"`);
-    const skillsList = ss.skills.map((s) => `"${s}"`).join(", ");
+    const skillsList = ss.skills.map((s) =>
+      typeof s === "string" ? `"${s}"` : `{name = "${s.name}", path = "${s.path}"}`
+    ).join(", ");
     lines.push(`skills    = [${skillsList}]`);
     if (ss.branch) lines.push(`branch    = "${ss.branch}"`);
     if (ss.pin) lines.push(`pin       = "${ss.pin}"`);

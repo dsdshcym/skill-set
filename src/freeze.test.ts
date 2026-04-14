@@ -41,6 +41,29 @@ describe("freeze", () => {
     expect(locked).toHaveLength(1);
   });
 
+  it("freezes skillset with inline table skill entries", async () => {
+    const { tmpDir: td, originRepo, claudeDir } = await setupTestRepo();
+    tmpDir = td;
+
+    const data = {
+      skills: [],
+      skillsets: [{
+        name: "tubi:pagerduty",
+        origin: originRepo,
+        root_path: ".claude/skills",
+        skills: [{ name: "tubi:pagerduty", path: "my-skill" }],
+      }],
+    };
+    await install(data, claudeDir);
+    await freeze(data, claudeDir);
+
+    const locked = await readLockfile(join(claudeDir, "Skillfile.lock"));
+    expect(locked).toHaveLength(1);
+    expect(locked[0].name).toBe("tubi:pagerduty");
+    expect(locked[0].path).toBe(".claude/skills/my-skill");
+    expect(locked[0].skillset).toBe("tubi:pagerduty");
+  });
+
   it("shares one pin for skills in the same skillset", async () => {
     const { tmpDir: td, originRepo, claudeDir } = await setupTestRepo();
     tmpDir = td;

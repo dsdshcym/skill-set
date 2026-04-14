@@ -1,13 +1,13 @@
 import { join } from "node:path";
 import { $ } from "bun";
-import { readSkillfile, serializeSkillfile } from "./config";
+import { readSkillfile, serializeSkillfile, resolveSkillEntry } from "./config";
 
 export async function fork(name: string, newOrigin: string, claudeDir: string): Promise<void> {
   const skillfilePath = join(claudeDir, "Skillfile");
   const data = await readSkillfile(skillfilePath);
 
   // Check if name is an individual skill inside a multi-skill skillset
-  const parentSet = data.skillsets.find((ss) => ss.skills.includes(name) && ss.name !== name);
+  const parentSet = data.skillsets.find((ss) => ss.skills.some((e) => resolveSkillEntry(e).name === name) && ss.name !== name);
   if (parentSet) {
     throw new Error(`"${name}" is part of skillset "${parentSet.name}". Run: skill-set fork ${parentSet.name} <url>`);
   }

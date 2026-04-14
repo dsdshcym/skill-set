@@ -58,6 +58,31 @@ skills    = ["brainstorming", "debugging", "tdd"]
     });
   });
 
+  it("parses [[skillset]] with inline table skill entries", () => {
+    const { skillsets } = parseSkillfile(`
+[[skillset]]
+name      = "tubi:pagerduty"
+origin    = "https://github.com/adRise/claude-skills.git"
+root_path = "plugins/pagerduty/skills"
+skills    = [{ name = "tubi:pagerduty", path = "pagerduty" }]
+`);
+    expect(skillsets[0].skills).toEqual([{ name: "tubi:pagerduty", path: "pagerduty" }]);
+  });
+
+  it("parses [[skillset]] with mixed string and inline table skills", () => {
+    const { skillsets } = parseSkillfile(`
+[[skillset]]
+name      = "my-set"
+origin    = "https://github.com/someone/skills"
+root_path = "skills"
+skills    = ["simple-skill", { name = "custom:name", path = "actual-dir" }]
+`);
+    expect(skillsets[0].skills).toEqual([
+      "simple-skill",
+      { name: "custom:name", path: "actual-dir" },
+    ]);
+  });
+
   it("[[skillset]] defaults root_path to empty string", () => {
     const { skillsets } = parseSkillfile(`
 [[skillset]]
@@ -150,6 +175,28 @@ name      = "superpowers"
 origin    = "https://github.com/someone/superpowers"
 root_path = "skills"
 skills    = ["brainstorming", "debugging"]
+`;
+    const data = parseSkillfile(input);
+    expect(parseSkillfile(serializeSkillfile(data))).toEqual(data);
+  });
+
+  it("round-trips [[skillset]] with inline table skills", () => {
+    const input = `[[skillset]]
+name      = "tubi:pagerduty"
+origin    = "https://github.com/adRise/claude-skills.git"
+root_path = "plugins/pagerduty/skills"
+skills    = [{name = "tubi:pagerduty", path = "pagerduty"}]
+`;
+    const data = parseSkillfile(input);
+    expect(parseSkillfile(serializeSkillfile(data))).toEqual(data);
+  });
+
+  it("round-trips [[skillset]] with mixed string and inline table skills", () => {
+    const input = `[[skillset]]
+name      = "my-set"
+origin    = "https://github.com/someone/skills"
+root_path = "skills"
+skills    = ["simple", {name = "custom:name", path = "actual-dir"}]
 `;
     const data = parseSkillfile(input);
     expect(parseSkillfile(serializeSkillfile(data))).toEqual(data);
